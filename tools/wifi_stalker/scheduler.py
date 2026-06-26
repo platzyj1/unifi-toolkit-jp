@@ -3,7 +3,9 @@ Background task scheduler for refreshing device status
 """
 import asyncio
 import logging
+import os
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
@@ -594,8 +596,16 @@ async def aggregate_hourly_presence():
     """
     try:
         now = datetime.now(timezone.utc)
-        day_of_week = now.weekday()  # 0=Monday, 6=Sunday
-        hour_of_day = now.hour
+        # Bucket presence by local wall-clock time so the heat map matches the
+        # user's timezone (TZ env var) instead of UTC. Converting a concrete
+        # UTC moment handles DST correctly. See issue #107.
+        try:
+            local_tz = ZoneInfo(os.environ.get("TZ", "UTC"))
+        except ZoneInfoNotFoundError:
+            local_tz = timezone.utc
+        local_now = now.astimezone(local_tz)
+        day_of_week = local_now.weekday()  # 0=Monday, 6=Sunday
+        hour_of_day = local_now.hour
 
         logger.info(f"Running hourly presence aggregation (day={day_of_week}, hour={hour_of_day})")
 

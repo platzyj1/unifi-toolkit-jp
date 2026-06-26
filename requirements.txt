@@ -19,3 +19,4 @@ itsdangerous>=2.1.0
 # Security: Minimum versions to address known CVEs
 urllib3>=2.6.0      # GHSA-gm62-xv2j-4w53, GHSA-2xpw-w6gg-jr37
 filelock>=3.20.1    # GHSA-w853-jp5j-5j7f
+tzdata>=2024.1        # Provides IANA tz database on slim images (issue #107)
